@@ -7,7 +7,7 @@ class SRGB {
     private static final double[] SRGB2LINEAR = new double[256];
 
     static {
-        for (int i = 0; i < 256; ++i) {
+        for (int i = 0; i < 256; i++) {
             double v = i / 255.0;
             if (v <= 0.04045) {
                 SRGB2LINEAR[i] = v / 12.92;

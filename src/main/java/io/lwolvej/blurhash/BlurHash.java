@@ -36,14 +36,15 @@ public class BlurHash {
             }
         }
 
-        char[] hash = new char[1 + 1 + 4 + 2 * (factors.length - 1)];
+        int factorsLength = factors.length;
+        char[] hash = new char[4 + 2 * factorsLength];
 
-        long sizeFlag = componentX - 1 + (componentY - 1) * 9;
+        long sizeFlag = componentX + componentY * 9 - 10;
         Base83.encode(sizeFlag, 1, hash, 0);
 
         double maximumValue;
-        if (factors.length > 1) {
-            double actualMaximumValue = Util.max(factors, factors.length);
+        if (factorsLength > 1) {
+            double actualMaximumValue = Util.max(factors);
             double quantisedMaximumValue = Math.floor(Math.max(0, Math.min(82, Math.floor(actualMaximumValue * 166 - 0.5))));
             maximumValue = (quantisedMaximumValue + 1) / 166;
             Base83.encode(Math.round(quantisedMaximumValue), 1, hash, 1);
@@ -55,8 +56,8 @@ public class BlurHash {
         double[] dc = factors[0];
         Base83.encode(Util.encodeDC(dc), 4, hash, 2);
 
-        for (int i = 1; i < factors.length; i++) {
-            Base83.encode(Util.encodeAC(factors[i], maximumValue), 2, hash, 6 + 2 * (i - 1));
+        for (int i = 1; i < factorsLength; i++) {
+            Base83.encode(Util.encodeAC(factors[i], maximumValue), 2, hash, 4 + 2 * i);
         }
         return new String(hash);
     }
@@ -89,18 +90,18 @@ public class BlurHash {
 
         //Decode DC component
         double[][] colors = new double[sizeX * sizeY][3];
-        colors[0] = Util.decodeDC(blurHash.substring(2, 6));
+        Util.decodeDC(blurHash.substring(2, 6), colors[0]);
 
         //Decode AC components
         for (int i = 1; i < sizeX * sizeY; i++) {
-            colors[i] = Util.decodeAC(blurHash.substring(4 + i * 2, 6 + i * 2), realMaxValue);
+            Util.decodeAC(blurHash.substring(4 + i * 2, 6 + i * 2), realMaxValue, colors[i]);
         }
 
         int[] pixels = new int[width * height];
         int pos = 0;
         for (int j = 0; j < height; j++) {
             for (int i = 0; i < width; i++) {
-                double r = 0.0, g = 0.0, b = 0.0;
+                double r = 0, g = 0, b = 0;
                 for (int y = 0; y < sizeY; y++) {
                     for (int x = 0; x < sizeX; x++) {
                         double basic = Math.cos(Math.PI * x * i / width) *

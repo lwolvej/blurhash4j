@@ -6,25 +6,21 @@ class Util {
         return Math.copySign(Math.pow(Math.abs(value), exp), value);
     }
 
-    static double[] decodeDC(String str) {
+    static void decodeDC(String str, double[] color) {
         int dcValue = Base83.decode(str);
-        return new double[]{
-                SRGB.toLinear(dcValue >> 16),
-                SRGB.toLinear((dcValue >> 8) & 255),
-                SRGB.toLinear(dcValue & 255)
-        };
+        color[0] = SRGB.toLinear(dcValue >> 16);
+        color[1] = SRGB.toLinear((dcValue >> 8) & 255);
+        color[2] = SRGB.toLinear(dcValue & 255);
     }
 
-    static double[] decodeAC(String str, double realMaxValue) {
+    static void decodeAC(String str, double realMaxValue, double[] color) {
         int acValue = Base83.decode(str);
         int quantR = acValue / (19 * 19);
         int quantG = (acValue / 19) % 19;
         int quantB = acValue % 19;
-        return new double[]{
-                signPow((quantR - 9.0) / 9.0, 2.0) * realMaxValue,
-                signPow((quantG - 9.0) / 9.0, 2.0) * realMaxValue,
-                signPow((quantB - 9.0) / 9.0, 2.0) * realMaxValue
-        };
+        color[0] = signPow((quantR - 9.0) / 9.0, 2.0) * realMaxValue;
+        color[1] = signPow((quantG - 9.0) / 9.0, 2.0) * realMaxValue;
+        color[2] = signPow((quantB - 9.0) / 9.0, 2.0) * realMaxValue;
     }
 
     static long encodeDC(double[] value) {
@@ -41,9 +37,7 @@ class Util {
         return Math.round(quantR * 19 * 19 + quantG * 19 + quantB);
     }
 
-    static void applyBasisFunction(int[] pixels, int width, int height,
-                                   double normalisation, int i, int j,
-                                   double[][] factors, int index) {
+    static void applyBasisFunction(int[] pixels, int width, int height, double normalisation, int i, int j, double[][] factors, int index) {
         double r = 0, g = 0, b = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -62,13 +56,12 @@ class Util {
         factors[index][2] = b * scale;
     }
 
-    static double max(double[][] values, int endExclusive) {
+    static double max(double[][] values) {
         double result = Double.NEGATIVE_INFINITY;
-        for (int i = 1; i < endExclusive; i++) {
+        for (int i = 1; i < values.length; i++) {
             for (int j = 0; j < values[i].length; j++) {
-                double value = values[i][j];
-                if (value > result) {
-                    result = value;
+                if (values[i][j] > result) {
+                    result = values[i][j];
                 }
             }
         }

@@ -1,6 +1,5 @@
 package io.lwolvej.blurhash;
 
-import java.util.Arrays;
 
 class Base83 {
 
@@ -42,7 +41,6 @@ class Base83 {
             exp *= 83;
         }
     }
-
 
     private static int indexOf(char c) {
         for (int i = 0; i < CHARACTERS.length; i++) {
