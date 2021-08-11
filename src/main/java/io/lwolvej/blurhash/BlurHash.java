@@ -29,10 +29,24 @@ public class BlurHash {
         double[][] factors = new double[componentX * componentY][3];
         for (int j = 0; j < componentY; j++) {
             for (int i = 0; i < componentX; i++) {
-                double normalisation = i == 0 && j == 0 ? 1 : 2;
-                Util.applyBasisFunction(pixels, width, height,
-                        normalisation, i, j,
-                        factors, j * componentX + i);
+                double normalisation = (i == 0 && j == 0) ? 1 : 2;
+                double r = 0, g = 0, b = 0;
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        double basis = normalisation
+                                * Math.cos((Math.PI * i * x) / width)
+                                * Math.cos((Math.PI * j * y) / height);
+                        int pixel = pixels[y * width + x];
+                        r += basis * SRGB.toLinear((pixel >> 16) & 0xff);
+                        g += basis * SRGB.toLinear((pixel >> 8) & 0xff);
+                        b += basis * SRGB.toLinear(pixel & 0xff);
+                    }
+                }
+                double scale = 1.0 / (width * height);
+                int index = j * componentX + i;
+                factors[index][0] = r * scale;
+                factors[index][1] = g * scale;
+                factors[index][2] = b * scale;
             }
         }
 
